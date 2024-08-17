@@ -1,5 +1,11 @@
 import json
 import os
+import argparse
+
+parser = argparse.ArgumentParser(description='tmux session creator')
+parser.add_argument('path')
+args = parser.parse_args()
+path = args.path
 
 
 def load_config(path):
@@ -37,13 +43,14 @@ def create_window(session_name: str, firstwindow: bool, window: dict):
 
 
 def main():
-    layouts = load_config("layouts.json")
+    layouts = load_config("/home/ttehri/projects/tmux-sess/layouts.json")
+    os.chdir(path)
     layout_names = "\n".join([n for n, _ in layouts.items()])
     os.system(f"echo '{layout_names}'| fzf > selectedoption")
     with open("selectedoption", "r") as f:
         option = f.readlines()[0]
     layout = layouts[option.strip()]
-    session_name = os.path.realpath(os.curdir).split('/')[-1]
+    session_name = os.path.realpath(path).split('/')[-1]
     create_session(session_name, layout["windows"])
     os.system(f"tmux attach-session -t {session_name}")
 
