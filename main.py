@@ -1,6 +1,7 @@
 import json
 import os
 import argparse
+import subprocess
 
 parser = argparse.ArgumentParser(description='tmux session creator')
 parser.add_argument('path')
@@ -46,10 +47,16 @@ def main():
     layouts = load_config("/home/ttehri/projects/tmux-sess/layouts.json")
     os.chdir(path)
     layout_names = "\n".join([n for n, _ in layouts.items()])
-    os.system(f"echo '{layout_names}'| fzf > selectedoption")
-    with open("selectedoption", "r") as f:
-        option = f.readlines()[0]
-    layout = layouts[option.strip()]
+
+    echo_ps = subprocess.Popen(
+        ['echo', f'{layout_names}'], stdout=subprocess.PIPE, text=True)
+    fzf_ps = subprocess.Popen(
+        ['fzf'], stdin=echo_ps.stdout, stdout=subprocess.PIPE, text=True)
+
+    output, e = fzf_ps.communicate()
+    layout = layouts[str(output).strip()]
+    print(layout)
+
     session_name = os.path.realpath(path).split('/')[-1]
     create_session(session_name, layout["windows"])
     os.system(f"tmux attach-session -t {session_name}")
