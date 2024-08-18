@@ -1,0 +1,4 @@
+
+move layout to config folder
+if file not present copy it from project layout file
+save layout path as dynamic value

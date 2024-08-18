@@ -2,14 +2,25 @@ import json
 import os
 import argparse
 import subprocess
+from pathlib import Path
+import shutil
 
 parser = argparse.ArgumentParser(description='tmux session creator')
 parser.add_argument('path')
 args = parser.parse_args()
 path = args.path
 
+PACKAGE_CONFIG_PATH = str(
+    Path('~/projects/tmux-sess/layouts.json').expanduser())
+CONFIG_PATH = Path('~/.config/tmux-sess/tmux-sess.json').expanduser()
 
-def load_config(path):
+
+def load_config(path: Path):
+    if not path.parent.exists():
+        path.parent.mkdir()
+    if not path.exists():
+        shutil.copy2(PACKAGE_CONFIG_PATH, str(path))
+
     with open(path, 'r') as f:
         return json.load(f)
 
@@ -44,7 +55,9 @@ def create_window(session_name: str, firstwindow: bool, window: dict):
 
 
 def main():
-    layouts = load_config("/home/ttehri/projects/tmux-sess/layouts.json")
+    layouts = load_config(CONFIG_PATH)
+    if not os.path.exists(path):
+        os.makedirs(path)
     os.chdir(path)
     layout_names = "\n".join([n for n, _ in layouts.items()])
 
