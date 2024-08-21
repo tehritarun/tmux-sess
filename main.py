@@ -59,15 +59,19 @@ def main():
     if not os.path.exists(path):
         os.makedirs(path)
     os.chdir(path)
-    layout_names = "\n".join([n for n, _ in layouts.items()])
+    if len(layouts) != 1:
+        # layout_names = "\n".join([n for n, _ in layouts.items()])
+        layout_names = '\n'.join(list(layouts.keys()))
 
-    echo_ps = subprocess.Popen(
-        ['echo', f'{layout_names}'], stdout=subprocess.PIPE, text=True)
-    fzf_ps = subprocess.Popen(
-        ['fzf'], stdin=echo_ps.stdout, stdout=subprocess.PIPE, text=True)
+        echo_ps = subprocess.Popen(
+            ['echo', f'{layout_names}'], stdout=subprocess.PIPE, text=True)
+        fzf_ps = subprocess.Popen(
+            ['fzf'], stdin=echo_ps.stdout, stdout=subprocess.PIPE, text=True)
 
-    output, e = fzf_ps.communicate()
-    layout = layouts[str(output).strip()]
+        output, e = fzf_ps.communicate()
+        layout = layouts[str(output).strip()]
+    else:
+        layout = layouts[list(layouts.keys())[0]]
     print(layout)
 
     session_name = os.path.realpath(path).split('/')[-1]
