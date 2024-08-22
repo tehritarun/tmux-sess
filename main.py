@@ -5,13 +5,19 @@ import subprocess
 from pathlib import Path
 import shutil
 
-parser = argparse.ArgumentParser(description="tmux session creator")
-parser.add_argument("path")
+parser = argparse.ArgumentParser(
+    prog="tmux-sess", description="Helps create tmux session")
+parser.add_argument("path", help="path of project directory")
+parser.add_argument(
+    "--config", help="Path to the config file", default="")
 args = parser.parse_args()
 path = args.path
+CONFIG_PATH = args.config
 
-PACKAGE_CONFIG_PATH = str(Path("~/projects/tmux-sess/layouts.json").expanduser())
-CONFIG_PATH = Path("~/.config/tmux-sess/tmux-sess.json").expanduser()
+PACKAGE_CONFIG_PATH = str(
+    Path("~/projects/tmux-sess/layouts.json").expanduser())
+if CONFIG_PATH == "":
+    CONFIG_PATH = Path("~/.config/tmux-sess/tmux-sess.json").expanduser()
 
 
 def load_config(path: Path):
@@ -36,12 +42,12 @@ def create_window(session_name: str, firstwindow: bool, window: dict):
     if not firstwindow:
         print(f"creating window: {window ['windowName']}")
         # Creating new window
-        print(f'tmux new-window {session_name} -n {window ["windowName"]}')
         subprocess.run(
-            args=["tmux", "new-window", "-t", session_name, "-n", window["windowName"]]
+            args=["tmux", "new-window", "-t",
+                  session_name, "-n", window["windowName"]]
         )
-    print(f"renaming window: {window[ 'windowName' ]}")
     # Renaming window
+    print(f"renaming window: {window[ 'windowName' ]}")
     subprocess.run(args=["tmux", "rename-window", window["windowName"]])
     subprocess.run(
         args=[
@@ -54,13 +60,14 @@ def create_window(session_name: str, firstwindow: bool, window: dict):
         ]
     )
     for pane in window["panes"][1:]:
-        print(f"creating pane {pane['orientation']}")
         # setting up pane
+        print(f"creating pane {pane['orientation']}")
         if pane["size"]:
             option = f"-{pane['orientation'][0]}l {pane['size']}"
             subprocess.run(args=["tmux", "split-window", option, session_name])
             subprocess.run(
-                args=["tmux", "send-keys", "-t", session_name, pane["command"], "C-m"]
+                args=["tmux", "send-keys", "-t",
+                      session_name, pane["command"], "C-m"]
             )
 
 
@@ -84,7 +91,6 @@ def main():
         layout = layouts[str(output).strip()]
     else:
         layout = layouts[list(layouts.keys())[0]]
-    print(layout)
 
     session_name = os.path.realpath(path).split("/")[-1]
     create_session(session_name, layout["windows"])
