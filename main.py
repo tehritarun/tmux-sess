@@ -26,32 +26,42 @@ def load_config(path: Path):
 
 def create_session(session_name, windows: list):
     print(f"creating session {session_name}")
-    # os.system(f"tmux new-session -d -s {session_name}")
-    subprocess.run("tmux", "new-session", "-d", "-s", {session_name})
+    subprocess.run(args=["tmux", "new-session", "-d", "-s", session_name])
     for index, win in enumerate(windows):
         create_window(session_name, index == 0, win)
 
 
 def create_window(session_name: str, firstwindow: bool, window: dict):
-    session_name = f"-t {session_name}"
+    # session_name = f"-t {session_name}"
     if not firstwindow:
         print(f"creating window: {window ['windowName']}")
         # Creating new window
         print(f'tmux new-window {session_name} -n {window ["windowName"]}')
-        subprocess.run("tmux", "new-window", session_name, "-n", window["windowName"])
+        subprocess.run(
+            args=["tmux", "new-window", "-t", session_name, "-n", window["windowName"]]
+        )
     print(f"renaming window: {window[ 'windowName' ]}")
     # Renaming window
-    subprocess.run("tmux", "rename-window", window["windowName"])
+    subprocess.run(args=["tmux", "rename-window", window["windowName"]])
     subprocess.run(
-        "tmux", "send-keys", session_name, window["panes"][0]["command"], "C-m"
+        args=[
+            "tmux",
+            "send-keys",
+            "-t",
+            session_name,
+            window["panes"][0]["command"],
+            "C-m",
+        ]
     )
     for pane in window["panes"][1:]:
         print(f"creating pane {pane['orientation']}")
         # setting up pane
         if pane["size"]:
             option = f"-{pane['orientation'][0]}l {pane['size']}"
-            os.system(f"tmux split-window {option} {session_name}")
-            os.system(f'tmux send-keys {session_name} "{pane ["command"]}" C-m')
+            subprocess.run(args=["tmux", "split-window", option, session_name])
+            subprocess.run(
+                args=["tmux", "send-keys", "-t", session_name, pane["command"], "C-m"]
+            )
 
 
 def main():
@@ -78,7 +88,7 @@ def main():
 
     session_name = os.path.realpath(path).split("/")[-1]
     create_session(session_name, layout["windows"])
-    os.system(f"tmux attach-session -t {session_name}")
+    subprocess.run(args=["tmux", "attach-session", "-t", session_name])
 
 
 if __name__ == "__main__":
