@@ -5,14 +5,13 @@ import subprocess
 from pathlib import Path
 import shutil
 
-parser = argparse.ArgumentParser(description='tmux session creator')
-parser.add_argument('path')
+parser = argparse.ArgumentParser(description="tmux session creator")
+parser.add_argument("path")
 args = parser.parse_args()
 path = args.path
 
-PACKAGE_CONFIG_PATH = str(
-    Path('~/projects/tmux-sess/layouts.json').expanduser())
-CONFIG_PATH = Path('~/.config/tmux-sess/tmux-sess.json').expanduser()
+PACKAGE_CONFIG_PATH = str(Path("~/projects/tmux-sess/layouts.json").expanduser())
+CONFIG_PATH = Path("~/.config/tmux-sess/tmux-sess.json").expanduser()
 
 
 def load_config(path: Path):
@@ -21,37 +20,48 @@ def load_config(path: Path):
     if not path.exists():
         shutil.copy2(PACKAGE_CONFIG_PATH, str(path))
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         return json.load(f)
 
 
 def create_session(session_name, windows: list):
     print(f"creating session {session_name}")
-    os.system(f"tmux new-session -d -s {session_name}")
+    subprocess.run(args=["tmux", "new-session", "-d", "-s", session_name])
     for index, win in enumerate(windows):
         create_window(session_name, index == 0, win)
 
 
 def create_window(session_name: str, firstwindow: bool, window: dict):
-    session_name = f"-t {session_name}"
+    # session_name = f"-t {session_name}"
     if not firstwindow:
         print(f"creating window: {window ['windowName']}")
         # Creating new window
         print(f'tmux new-window {session_name} -n {window ["windowName"]}')
-        os.system(f'tmux new-window {session_name} -n {window ["windowName"]}')
+        subprocess.run(
+            args=["tmux", "new-window", "-t", session_name, "-n", window["windowName"]]
+        )
     print(f"renaming window: {window[ 'windowName' ]}")
     # Renaming window
-    os.system(f'tmux rename-window {window ["windowName" ]}')
-    os. system(
-        f'tmux send-keys {session_name} "{window["panes"][0]["command"]}" C-m')
+    subprocess.run(args=["tmux", "rename-window", window["windowName"]])
+    subprocess.run(
+        args=[
+            "tmux",
+            "send-keys",
+            "-t",
+            session_name,
+            window["panes"][0]["command"],
+            "C-m",
+        ]
+    )
     for pane in window["panes"][1:]:
         print(f"creating pane {pane['orientation']}")
         # setting up pane
         if pane["size"]:
             option = f"-{pane['orientation'][0]}l {pane['size']}"
-            os.system(f"tmux split-window {option} {session_name}")
-            os.system(
-                f'tmux send-keys {session_name} "{pane ["command"]}" C-m')
+            subprocess.run(args=["tmux", "split-window", option, session_name])
+            subprocess.run(
+                args=["tmux", "send-keys", "-t", session_name, pane["command"], "C-m"]
+            )
 
 
 def main():
@@ -61,12 +71,14 @@ def main():
     os.chdir(path)
     if len(layouts) != 1:
         # layout_names = "\n".join([n for n, _ in layouts.items()])
-        layout_names = '\n'.join(list(layouts.keys()))
+        layout_names = "\n".join(list(layouts.keys()))
 
         echo_ps = subprocess.Popen(
-            ['echo', f'{layout_names}'], stdout=subprocess.PIPE, text=True)
+            ["echo", f"{layout_names}"], stdout=subprocess.PIPE, text=True
+        )
         fzf_ps = subprocess.Popen(
-            ['fzf'], stdin=echo_ps.stdout, stdout=subprocess.PIPE, text=True)
+            ["fzf"], stdin=echo_ps.stdout, stdout=subprocess.PIPE, text=True
+        )
 
         output, e = fzf_ps.communicate()
         layout = layouts[str(output).strip()]
@@ -74,9 +86,9 @@ def main():
         layout = layouts[list(layouts.keys())[0]]
     print(layout)
 
-    session_name = os.path.realpath(path).split('/')[-1]
+    session_name = os.path.realpath(path).split("/")[-1]
     create_session(session_name, layout["windows"])
-    os.system(f"tmux attach-session -t {session_name}")
+    subprocess.run(args=["tmux", "attach-session", "-t", session_name])
 
 
 if __name__ == "__main__":
