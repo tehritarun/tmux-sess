@@ -7,7 +7,7 @@ import shutil
 
 parser = argparse.ArgumentParser(
     prog="tmux-sess", description="Helps create tmux session")
-parser.add_argument("dir", help="Path of project directory")
+parser.add_argument("dir", help="Path to the project directory")
 parser.add_argument(
     "--config", help="Path to the config file", default="")
 args = parser.parse_args()
