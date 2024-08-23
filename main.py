@@ -7,26 +7,31 @@ import shutil
 
 parser = argparse.ArgumentParser(
     prog="tmux-sess", description="Helps create tmux session")
-parser.add_argument("path", help="path of project directory")
+parser.add_argument("dir", help="Path of project directory")
 parser.add_argument(
     "--config", help="Path to the config file", default="")
 args = parser.parse_args()
-path = args.path
+projdir = args.dir
 CONFIG_PATH = args.config
 
 PACKAGE_CONFIG_PATH = str(
     Path("~/projects/tmux-sess/layouts.json").expanduser())
-if CONFIG_PATH == "":
+if CONFIG_PATH.strip() == "":
     CONFIG_PATH = Path("~/.config/tmux-sess/tmux-sess.json").expanduser()
+elif Path(CONFIG_PATH).exists():
+    CONFIG_PATH = Path(CONFIG_PATH).expanduser()
+else:
+    print("Invalid Config path")
+    exit(1)
 
 
-def load_config(path: Path):
-    if not path.parent.exists():
-        path.parent.mkdir()
-    if not path.exists():
-        shutil.copy2(PACKAGE_CONFIG_PATH, str(path))
+def load_config(projdir: Path):
+    if not projdir.parent.exists():
+        projdir.parent.mkdir()
+    if not projdir.exists():
+        shutil.copy2(PACKAGE_CONFIG_PATH, str(projdir))
 
-    with open(path, "r") as f:
+    with open(projdir, "r") as f:
         return json.load(f)
 
 
@@ -73,11 +78,10 @@ def create_window(session_name: str, firstwindow: bool, window: dict):
 
 def main():
     layouts = load_config(CONFIG_PATH)
-    if not os.path.exists(path):
-        os.makedirs(path)
-    os.chdir(path)
+    if not os.path.exists(projdir):
+        os.makedirs(projdir)
+    os.chdir(projdir)
     if len(layouts) != 1:
-        # layout_names = "\n".join([n for n, _ in layouts.items()])
         layout_names = "\n".join(list(layouts.keys()))
 
         echo_ps = subprocess.Popen(
@@ -92,7 +96,7 @@ def main():
     else:
         layout = layouts[list(layouts.keys())[0]]
 
-    session_name = os.path.realpath(path).split("/")[-1]
+    session_name = os.path.realpath(projdir).split("/")[-1]
     create_session(session_name, layout["windows"])
     subprocess.run(args=["tmux", "attach-session", "-t", session_name])
 
