@@ -80,6 +80,9 @@ def main():
     layouts = load_config(CONFIG_PATH)
     if not os.path.exists(projdir):
         os.makedirs(projdir)
+    session_name = os.path.realpath(projdir).split("/")[-1]
+    if check_tmux_session(session_name):
+        return session_name
     os.chdir(projdir)
     if len(layouts) != 1:
         layout_names = "\n".join(list(layouts.keys()))
@@ -96,10 +99,24 @@ def main():
     else:
         layout = layouts[list(layouts.keys())[0]]
 
-    session_name = os.path.realpath(projdir).split("/")[-1]
     create_session(session_name, layout["windows"])
-    subprocess.run(args=["tmux", "attach-session", "-t", session_name])
+    return session_name
+
+
+def check_tmux_session(sessionName):
+    cmd1 = subprocess.Popen(['tmux', 'ls'], stdout=subprocess.PIPE, text=True)
+    cmd2 = subprocess.Popen(['grep', sessionName], stdin=cmd1.stdout,
+                            stdout=subprocess.PIPE, text=True)
+    output, e = cmd2.communicate()
+    print(output)
+    if output and str(output).startswith(sessionName):
+        print(f"active session found for {sessionName}")
+        return True
+    else:
+        print("active session not found")
+        return False
 
 
 if __name__ == "__main__":
-    main()
+    session = main()
+    subprocess.run(args=['tmux', 'attach-session', '-t', session])
