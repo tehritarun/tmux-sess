@@ -25,13 +25,13 @@ else:
     exit(1)
 
 
-def load_config(projdir: Path):
-    if not projdir.parent.exists():
-        projdir.parent.mkdir()
-    if not projdir.exists():
-        shutil.copy2(PACKAGE_CONFIG_PATH, str(projdir))
+def load_config(config_path: Path):
+    if not config_path.parent.exists():
+        config_path.parent.mkdir()
+    if not config_path.exists():
+        shutil.copy2(PACKAGE_CONFIG_PATH, str(config_path))
 
-    with open(projdir, "r") as f:
+    with open(config_path, "r") as f:
         return json.load(f)
 
 
@@ -76,26 +76,36 @@ def create_window(session_name: str, firstwindow: bool, window: dict):
             )
 
 
+def get_user_choice(options: list) -> str:
+    opts_str = "\n".join(options.keys())
+
+    echo_ps = subprocess.Popen(
+        ["echo", f"{opts_str}"], stdout=subprocess.PIPE, text=True
+    )
+    fzf_ps = subprocess.Popen(
+        ["fzf"], stdin=echo_ps.stdout, stdout=subprocess.PIPE, text=True
+    )
+
+    output, e = fzf_ps.communicate()
+    return str(output).strip()
+
+
 def main():
+    # load config
     layouts = load_config(CONFIG_PATH)
-    if not os.path.exists(projdir):
-        os.makedirs(projdir)
+    # create project directory if not exists
+    proj_path = Path(projdir)
+    if not proj_path.exists():
+        proj_path.mkdir()
+    # change dir to project directory
     os.chdir(projdir)
+    # ask user to select layout if multiple available in config
     if len(layouts) != 1:
-        layout_names = "\n".join(list(layouts.keys()))
-
-        echo_ps = subprocess.Popen(
-            ["echo", f"{layout_names}"], stdout=subprocess.PIPE, text=True
-        )
-        fzf_ps = subprocess.Popen(
-            ["fzf"], stdin=echo_ps.stdout, stdout=subprocess.PIPE, text=True
-        )
-
-        output, e = fzf_ps.communicate()
-        layout = layouts[str(output).strip()]
+        chosen_layout = get_user_choice(list(layouts.keys()))
+        layout = layouts[chosen_layout]
     else:
         layout = layouts[list(layouts.keys())[0]]
-
+    # get session name and create session
     session_name = os.path.realpath(projdir).split("/")[-1]
     create_session(session_name, layout["windows"])
     subprocess.run(args=["tmux", "attach-session", "-t", session_name])
