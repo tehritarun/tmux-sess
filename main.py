@@ -5,24 +5,29 @@ import subprocess
 from pathlib import Path
 import shutil
 
-parser = argparse.ArgumentParser(
-    prog="tmux-sess", description="Helps create tmux session")
-parser.add_argument("dir", help="Path to the project directory")
-parser.add_argument(
-    "--config", help="Path to the config file", default="")
-args = parser.parse_args()
-projdir = args.dir
-CONFIG_PATH = args.config
 
 PACKAGE_CONFIG_PATH = str(
     Path("~/projects/tmux-sess/layouts.json").expanduser())
-if CONFIG_PATH.strip() == "":
-    CONFIG_PATH = Path("~/.config/tmux-sess/tmux-sess.json").expanduser()
-elif Path(CONFIG_PATH).exists():
-    CONFIG_PATH = Path(CONFIG_PATH).expanduser()
-else:
-    print("Invalid Config path")
-    exit(1)
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        prog="tmux-sess", description="Helps create tmux session")
+    parser.add_argument("dir", help="Path to the project directory")
+    parser.add_argument(
+        "--config", help="Path to the config file", default="")
+    args = parser.parse_args()
+    dir_path = args.dir
+    config_path = args.config
+
+    if config_path.strip() == "":
+        config_path = Path("~/.config/tmux-sess/tmux-sess.json").expanduser()
+    elif Path(config_path).exists():
+        config_path = Path(config_path).expanduser()
+    else:
+        print("Invalid Config path")
+        exit(1)
+    return config_path, dir_path
 
 
 def load_config(config_path: Path):
@@ -77,7 +82,7 @@ def create_window(session_name: str, firstwindow: bool, window: dict):
 
 
 def get_user_choice(options: list) -> str:
-    opts_str = "\n".join(options.keys())
+    opts_str = "\n".join(options)
 
     echo_ps = subprocess.Popen(
         ["echo", f"{opts_str}"], stdout=subprocess.PIPE, text=True
@@ -91,14 +96,16 @@ def get_user_choice(options: list) -> str:
 
 
 def main():
+    # get arguments
+    config_path, dir_path = parse_arguments()
     # load config
-    layouts = load_config(CONFIG_PATH)
+    layouts = load_config(config_path)
     # create project directory if not exists
-    proj_path = Path(projdir)
+    proj_path = Path(dir_path)
     if not proj_path.exists():
         proj_path.mkdir()
     # change dir to project directory
-    os.chdir(projdir)
+    os.chdir(dir_path)
     # ask user to select layout if multiple available in config
     if len(layouts) != 1:
         chosen_layout = get_user_choice(list(layouts.keys()))
@@ -106,7 +113,7 @@ def main():
     else:
         layout = layouts[list(layouts.keys())[0]]
     # get session name and create session
-    session_name = os.path.realpath(projdir).split("/")[-1]
+    session_name = os.path.realpath(dir_path).split("/")[-1]
     create_session(session_name, layout["windows"])
     subprocess.run(args=["tmux", "attach-session", "-t", session_name])
 
