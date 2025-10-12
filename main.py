@@ -1,10 +1,9 @@
+import argparse
 import json
 import os
-import argparse
+import shutil
 import subprocess
 from pathlib import Path
-import shutil
-
 
 PACKAGE_CONFIG_PATH = str(Path("~/projects/tmux-sess/layouts.json").expanduser())
 
