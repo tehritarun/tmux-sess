@@ -6,16 +6,15 @@ from pathlib import Path
 import shutil
 
 
-PACKAGE_CONFIG_PATH = str(
-    Path("~/projects/tmux-sess/layouts.json").expanduser())
+PACKAGE_CONFIG_PATH = str(Path("~/projects/tmux-sess/layouts.json").expanduser())
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        prog="tmux-sess", description="Helps create tmux session")
+        prog="tmux-sess", description="Helps create tmux session"
+    )
     parser.add_argument("dir", help="Path to the project directory")
-    parser.add_argument(
-        "--config", help="Path to the config file", default="")
+    parser.add_argument("--config", help="Path to the config file", default="")
     args = parser.parse_args()
     dir_path = args.dir
     config_path = args.config
@@ -50,14 +49,13 @@ def create_session(session_name, windows: list):
 def create_window(session_name: str, firstwindow: bool, window: dict):
     # session_name = f"-t {session_name}"
     if not firstwindow:
-        print(f"creating window: {window ['windowName']}")
+        print(f"creating window: {window['windowName']}")
         # Creating new window
         subprocess.run(
-            args=["tmux", "new-window", "-t",
-                  session_name, "-n", window["windowName"]]
+            args=["tmux", "new-window", "-t", session_name, "-n", window["windowName"]]
         )
     # Renaming window
-    print(f"renaming window: {window[ 'windowName' ]}")
+    print(f"renaming window: {window['windowName']}")
     subprocess.run(args=["tmux", "rename-window", window["windowName"]])
     subprocess.run(
         args=[
@@ -76,8 +74,7 @@ def create_window(session_name: str, firstwindow: bool, window: dict):
             option = f"-{pane['orientation'][0]}l {pane['size']}"
             subprocess.run(args=["tmux", "split-window", option, session_name])
             subprocess.run(
-                args=["tmux", "send-keys", "-t",
-                      session_name, pane["command"], "C-m"]
+                args=["tmux", "send-keys", "-t", session_name, pane["command"], "C-m"]
             )
 
 

@@ -22,8 +22,8 @@ echo "$sessEntry"
 
 if [ -z "$sessEntry" ]; then
     projectdir=$PWD/main.py
-    echo "alias tt='python3 $projectdir'" >> "$HOME"/.zshrc
+    echo "alias tt='python3 $projectdir'" >> "$ZDOTDIR"/.zshrc
     echo "Entry added in zshrc"
 else
-    echo 'zshrc entry is already available'
+    echo "zshrc entry is already available"
 fi

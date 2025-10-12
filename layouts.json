@@ -1,17 +1,17 @@
 {
-    "Development": {
-        "windows": [
-            {
-                "windowName": "Task",
-                "panes": [
-                    {
-                        "orientation": "vertical",
-                        "name": "code",
-                        "size": null,
-                        "command": "ls"
-                    }
-                ]
-            }
+  "Development": {
+    "windows": [
+      {
+        "windowName": "Task",
+        "panes": [
+          {
+            "orientation": "vertical",
+            "name": "code",
+            "size": null,
+            "command": "ls"
+          }
         ]
-    }
+      }
+    ]
+  }
 }
