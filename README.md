@@ -2,6 +2,26 @@
 
 `tmux-sess` is a Python-based tool designed to automate the creation of `tmux` sessions with predefined layouts. It allows you to easily set up your development environment with specific windows and panes for different projects.
 
+## Quick Start
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/tehritarun/tmux-sess.git
+    cd tmux-sess
+    ```
+2.  Run the setup script:
+    ```bash
+    ./setup.sh
+    ```
+3.  Reload your shell configuration:
+    ```bash
+    source ~/.zshrc
+    ```
+4.  Start a session:
+    ```bash
+    tt ~/path/to/your/project
+    ```
+
 ## Features
 
 - **Automated Session Creation**: Create `tmux` sessions with a single command.
@@ -19,6 +39,10 @@ Before using `tmux-sess`, ensure you have the following installed:
 
 ## Installation
 
+### Automated Setup
+
+The easiest way to install is using the provided setup script.
+
 1.  Clone this repository:
 
     ```bash
@@ -26,15 +50,44 @@ Before using `tmux-sess`, ensure you have the following installed:
     cd tmux-sess
     ```
 
-2.  (Optional) Create a symlink to `main.py` in your PATH for easier access, or alias it in your shell configuration.
+2.  Run the setup script:
+
+    ```bash
+    chmod +x setup.sh
+    ./setup.sh
+    ```
+
+    This script will:
+
+    - Check for dependencies (`python3`, `tmux`, `fzf`).
+    - Create the configuration directory `~/.config/tmux-sess`.
+    - Copy the default `layouts.json` configuration.
+    - Add an alias `tt` to your `.zshrc`.
+
+3.  Reload your shell:
+    ```bash
+    source ~/.zshrc
+    ```
+
+### Manual Installation
+
+1.  Clone the repository.
+2.  Ensure dependencies are installed.
+3.  Create `~/.config/tmux-sess` and copy `layouts.json` to `~/.config/tmux-sess/tmux-sess.json`.
+4.  Add an alias to your shell configuration (e.g., `.bashrc` or `.zshrc`):
+    ```bash
+    alias tt='python3 /path/to/tmux-sess/main.py'
+    ```
 
 ## Usage
 
 Run the script by providing the path to your project directory:
 
 ```bash
-python3 main.py <project_directory> [options]
+tt <project_directory> [options]
 ```
+
+(Assuming you have set up the `tt` alias)
 
 ### Arguments
 
@@ -44,7 +97,7 @@ python3 main.py <project_directory> [options]
 ### Example
 
 ```bash
-python3 main.py ~/projects/tmux-sess
+tt ~/projects/tmux-sess
 ```
 
 ## Configuration
@@ -121,3 +174,17 @@ The configuration file should contain a JSON object where keys are layout names 
   }
 }
 ```
+
+## Troubleshooting
+
+### "command not found: tt"
+
+Ensure you have run `source ~/.zshrc` after running the setup script. If you use a different shell (bash, fish), you need to manually add the alias.
+
+### "tmux: command not found"
+
+Install tmux using your package manager (e.g., `sudo apt install tmux` or `brew install tmux`).
+
+### "fzf executable not found"
+
+Install fzf using your package manager (e.g., `sudo apt install fzf` or `brew install fzf`).
