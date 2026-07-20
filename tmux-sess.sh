@@ -64,7 +64,6 @@ create-window() {
 
     pane_count=$(echo "$1" | jq '.panes | length')
     for ((j = 0; j < pane_count; j++)); do
-        echo "$j"
         pane=$(echo "$1" | jq ".panes[$j]")
         open-pane "$pane"
     done
@@ -72,7 +71,12 @@ create-window() {
 
 create-tmux-session() {
     tmux new-session -d -s "$SESSION_NAME"
-    selected_layout=$(echo "$layout" | jq -r 'keys[]' | fzf)
+    number_of_layouts=$(echo "$layout" | jq -r 'keys | length')
+    if [[ "$number_of_layouts" -eq 1 ]]; then
+        selected_layout=$(echo "$layout" | jq -r 'keys[]')
+    else
+        selected_layout=$(echo "$layout" | jq -r 'keys[]' | fzf)
+    fi
 
     if [[ -z "$selected_layout" ]]; then
         echo "No Layout selected."
@@ -84,12 +88,10 @@ create-tmux-session() {
 
     window_count=$(echo "$selected_layout" | jq '.windows | length')
     for ((i = 0; i < window_count; i++)); do
-        echo "$i"
         win=$(echo "$selected_layout" | jq ".windows[$i]")
         create-window "$win" $i
     done
 }
-
 
 # MAIN PROGRAM EXECUTION
 # Validate input parameter and folder

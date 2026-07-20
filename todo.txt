@@ -1,4 +1,6 @@
-
-move layout to config folder
-if file not present copy it from project layout file
-save layout path as dynamic value
+------------------------------------------------------------
+|-                          TODO                          -|
+------------------------------------------------------------
+- [X] If single layout present then don't ask to select
+- [ ] Fix fzf prompting
+- [ ] Fix setup script for mac
