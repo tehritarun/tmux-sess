@@ -19,7 +19,7 @@ check-tmux-session() {
     if [[ ! -z "$tmux_out" ]]; then
         prompt="Tmux session with name $SESSION_NAME already exists."
         debug "$prompt"
-        choice=$(printf "Attach\nCreate New\nCancel" | fzf --prompt "$prompt")
+        choice=$(printf "Attach\nCreate New\nCancel" | fzf --prompt "$prompt" --preview-window hidden --margin 10% --border rounded)
         if [[ "$choice" == "Attach" ]]; then
             tmux attach-session -t "$SESSION_NAME"
             exit 0
@@ -75,7 +75,7 @@ create-tmux-session() {
     if [[ "$number_of_layouts" -eq 1 ]]; then
         selected_layout=$(echo "$layout" | jq -r 'keys[]')
     else
-        selected_layout=$(echo "$layout" | jq -r 'keys[]' | fzf)
+        selected_layout=$(echo "$layout" | jq -r 'keys[]' | fzf --preview-window hidden --margin 10% --border rounded)
     fi
 
     if [[ -z "$selected_layout" ]]; then

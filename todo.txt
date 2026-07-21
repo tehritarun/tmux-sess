@@ -2,5 +2,5 @@
 |-                          TODO                          -|
 ------------------------------------------------------------
 - [X] If single layout present then don't ask to select
-- [ ] Fix fzf prompting
+- [X] Fix fzf prompting
 - [ ] Fix setup script for mac
