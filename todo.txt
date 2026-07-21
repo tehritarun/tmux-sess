@@ -3,4 +3,4 @@
 ------------------------------------------------------------
 - [X] If single layout present then don't ask to select
 - [X] Fix fzf prompting
-- [ ] Fix setup script for mac
+- [X] Fix setup script for mac
