@@ -3,7 +3,7 @@
 layout=$(cat ~/.config/tmux-sess/tmux-sess.json)
 DIRECTORY=""
 SESSION_NAME=""
-DEBUG=1
+DEBUG=0
 
 debug() {
     if [[ "$DEBUG" -eq 1 ]]; then
@@ -99,13 +99,16 @@ if [[ $# -eq 0 ]]; then
     debug "No parameter provided. Continuing in current directory"
     DIRECTORY=$(pwd)
 elif [[ "$1" == "." ]]; then
+    debug "Continuing in current directory"
     DIRECTORY=$(pwd)
 else
     if [[ -d "$1" ]]; then
         DIRECTORY=$1
     elif [[ -f "$1" ]]; then
+        debug "File path provided. Continuing with it's parent directory"
         DIRECTORY=$(dirname "$1")
     else
+        debug "Creating new directory"
         DIRECTORY=$1
         if [[ ! $(mkdir -p "$DIRECTORY") -eq 0 ]]; then
             echo "Enable to create new directory. Please enter valid input"
