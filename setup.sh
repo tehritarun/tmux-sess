@@ -7,11 +7,19 @@ CONFIG_DIR="$HOME/.config/tmux-sess"
 CONFIG_FILE="$CONFIG_DIR/tmux-sess.json"
 ZSHRC="${ZDOTDIR:-$HOME}/.zshrc"
 
+log_error() {
+    printf "[ERROR] %s" "$1"
+}
+
+log_info() {
+    printf "[INFO] %s" "$1"
+}
+
 # Check for dependencies
 log_info "Checking dependencies..."
 MISSING_DEPS=0
-for cmd in python3 tmux fzf; do
-    if ! command -v "$cmd" &> /dev/null; then
+for cmd in python3 tmux jq fzf; do
+    if ! command -v "$cmd" &>/dev/null; then
         log_error "$cmd is not installed."
         MISSING_DEPS=1
     else
@@ -49,12 +57,12 @@ if [ -f "$ZSHRC" ]; then
     if grep -q "alias tt=" "$ZSHRC"; then
         log_info "Alias 'tt' already exists in $ZSHRC"
     else
-        PROJECT_MAIN="$SCRIPT_DIR/main.py"
+        PROJECT_MAIN="$SCRIPT_DIR/tmux-sess.sh"
         {
             echo ""
             echo "# tmux-sess alias"
-            echo "alias tt='python3 $PROJECT_MAIN'"
-        } >> "$ZSHRC"
+            echo "alias tt='$PROJECT_MAIN'"
+        } >>"$ZSHRC"
         log_info "Added alias 'tt' to $ZSHRC"
         log_info "Please run 'source ~/.zshrc' to apply changes."
     fi
