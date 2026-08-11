@@ -14,6 +14,7 @@ debug() {
 # Check tmux session
 check-tmux-session() {
     SESSION_NAME=$(basename "$DIRECTORY")
+    SESSION_NAME=${SESSION_NAME//./-}
     debug "Checking tmux session $SESSION_NAME"
     tmux_out=$(tmux ls 2>/dev/null | grep "$SESSION_NAME")
     if [[ ! -z "$tmux_out" ]]; then
