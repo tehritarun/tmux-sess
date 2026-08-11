@@ -15,7 +15,7 @@ debug() {
 check-tmux-session() {
     SESSION_NAME=$(basename "$DIRECTORY")
     debug "Checking tmux session $SESSION_NAME"
-    tmux_out=$(tmux ls | grep "$SESSION_NAME")
+    tmux_out=$(tmux ls 2>/dev/null | grep "$SESSION_NAME")
     if [[ ! -z "$tmux_out" ]]; then
         prompt="Tmux session with name $SESSION_NAME already exists."
         debug "$prompt"
