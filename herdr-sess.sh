@@ -94,27 +94,28 @@ create-tab() {
         # First tab - already created with workspace, just get the initial pane
         debug "Using initial workspace tab"
         tab_output=$(herdr tab list --workspace "$WORKSPACE_ID" 2>&1)
-        tab_id=$(echo "$tab_output" | grep -oE 'tab_[a-zA-Z0-9]+' | head -1)
+        tab_id=$(echo "$tab_output" | jq -r '.result.tabs.[0].tab_id')
+
+        herdr tab rename "$tab_id" "$tab_name"
 
         # Get first pane from this tab
-        pane_output=$(herdr pane list --workspace "$WORKSPACE_ID" 2>&1)
-        first_pane=$(echo "$pane_output" | grep -oE 'pane_[a-zA-Z0-9]+' | head -1)
+        # pane_output=$(herdr pane list --workspace "$WORKSPACE_ID" 2>&1)
+        # first_pane=$(echo "$pane_output" | grep -oE 'pane_[a-zA-Z0-9]+' | head -1)
     else
         debug "Creating new tab: $tab_name"
         tab_output=$(herdr tab create --workspace "$WORKSPACE_ID" --label "$tab_name" --cwd "$DIRECTORY" --focus 2>&1)
-        tab_id=$(echo "$tab_output" | grep -oE 'tab_[a-zA-Z0-9]+' | head -1)
+        tab_id=$(echo "$tab_output" | jq '.result.tab.tab_id')
 
         # Get the pane from the new tab
         sleep 0.2 # Brief delay to ensure tab is created
-        pane_output=$(herdr pane list --workspace "$WORKSPACE_ID" 2>&1)
-        first_pane=$(echo "$pane_output" | grep -oE 'pane_[a-zA-Z0-9]+' | tail -1)
+        # pane_output=$(herdr pane list --workspace "$WORKSPACE_ID" 2>&1)
+        # first_pane=$(echo "$pane_output" | grep -oE 'pane_[a-zA-Z0-9]+' | tail -1)
     fi
 
-    debug "Tab ID: $tab_id, First pane: $first_pane"
+    debug "Tab ID: $tab_id"
 
     # Create all panes for this tab
     pane_count=$(echo "$1" | jq '.panes | length')
-    parent_pane="$first_pane"
 
     for ((j = 0; j < pane_count; j++)); do
         pane=$(echo "$1" | jq ".panes[$j]")
