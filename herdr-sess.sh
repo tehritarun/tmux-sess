@@ -29,6 +29,7 @@ check-herdr-workspace() {
         if [[ "$choice" == "Focus" ]]; then
             # Extract workspace ID and focus
             herdr workspace focus "$WORKSPACE_ID"
+            herdr
             exit 0
         elif [[ "$choice" == "Cancel" ]]; then
             exit 0
@@ -161,6 +162,7 @@ create-herdr-workspace() {
 
     # Focus on the workspace
     herdr workspace focus "$WORKSPACE_ID"
+    herdr
 }
 
 # MAIN PROGRAM EXECUTION
