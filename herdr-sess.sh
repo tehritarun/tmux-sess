@@ -4,6 +4,7 @@ layout=$(cat ~/.config/tmux-sess/tmux-sess.json)
 DIRECTORY=""
 WORKSPACE_NAME=""
 WORKSPACE_ID=""
+ROOT_PANE_ID=""
 DEBUG=1
 
 debug() {
@@ -66,12 +67,12 @@ open-pane() {
         fi
 
         debug "Splitting pane in direction $direction with ratio $ratio"
-        split_output=$(herdr pane split "$parent_pane" --direction "$direction" --ratio "$ratio" --cwd "$DIRECTORY" --focus 2>&1)
+        split_output=$(herdr pane split "$parent_pane" --direction "$direction" --ratio "$ratio" --cwd "$DIRECTORY" --focus)
 
-        # Extract pane ID from output
-        current_pane=$(echo "$split_output" | grep -oE 'pane_[a-zA-Z0-9]+' | head -1)
+        # Extract pane ID from JSON output
+        current_pane=$(echo "$split_output" | jq -r '.result.pane.pane_id')
 
-        if [[ -z "$current_pane" ]]; then
+        if [[ -z "$current_pane" ]] || [[ "$current_pane" == "null" ]]; then
             debug "Warning: Could not extract pane ID from split output"
             current_pane="$parent_pane"
         fi
@@ -93,29 +94,27 @@ create-tab() {
     if [[ $tab_index -eq 0 ]]; then
         # First tab - already created with workspace, just get the initial pane
         debug "Using initial workspace tab"
-        tab_output=$(herdr tab list --workspace "$WORKSPACE_ID" 2>&1)
-        tab_id=$(echo "$tab_output" | jq -r '.result.tabs.[0].tab_id')
+        tab_output=$(herdr tab list --workspace "$WORKSPACE_ID")
+        tab_id=$(echo "$tab_output" | jq -r '.result.tabs[0].tab_id')
 
         herdr tab rename "$tab_id" "$tab_name"
 
-        # Get first pane from this tab
-        # pane_output=$(herdr pane list --workspace "$WORKSPACE_ID" 2>&1)
-        # first_pane=$(echo "$pane_output" | grep -oE 'pane_[a-zA-Z0-9]+' | head -1)
+        # Get first pane from this tab - it's the root pane from workspace creation
+        first_pane="$ROOT_PANE_ID"
     else
         debug "Creating new tab: $tab_name"
-        tab_output=$(herdr tab create --workspace "$WORKSPACE_ID" --label "$tab_name" --cwd "$DIRECTORY" --focus 2>&1)
-        tab_id=$(echo "$tab_output" | jq '.result.tab.tab_id')
+        tab_output=$(herdr tab create --workspace "$WORKSPACE_ID" --label "$tab_name" --cwd "$DIRECTORY" --focus)
+        tab_id=$(echo "$tab_output" | jq -r '.result.tab.tab_id')
 
-        # Get the pane from the new tab
-        sleep 0.2 # Brief delay to ensure tab is created
-        # pane_output=$(herdr pane list --workspace "$WORKSPACE_ID" 2>&1)
-        # first_pane=$(echo "$pane_output" | grep -oE 'pane_[a-zA-Z0-9]+' | tail -1)
+        # Get the root pane from the tab creation response
+        first_pane=$(echo "$tab_output" | jq -r '.result.root_pane.pane_id')
     fi
 
-    debug "Tab ID: $tab_id"
+    debug "Tab ID: $tab_id, First pane: $first_pane"
 
     # Create all panes for this tab
     pane_count=$(echo "$1" | jq '.panes | length')
+    parent_pane="$first_pane"
 
     for ((j = 0; j < pane_count; j++)); do
         pane=$(echo "$1" | jq ".panes[$j]")
@@ -125,15 +124,17 @@ create-tab() {
 
 create-herdr-workspace() {
     debug "Creating herdr workspace: $WORKSPACE_NAME"
-    workspace_output=$(herdr workspace create --label "$WORKSPACE_NAME" --no-focus 2>&1)
-    WORKSPACE_ID=$(echo "$workspace_output" | jq -r '.result.workspace.workspace_id' 2>&1)
+    workspace_output=$(herdr workspace create --label "$WORKSPACE_NAME" --no-focus)
+    WORKSPACE_ID=$(echo "$workspace_output" | jq -r '.result.workspace.workspace_id')
+    ROOT_PANE_ID=$(echo "$workspace_output" | jq -r '.result.root_pane.pane_id')
 
-    if [[ -z "$WORKSPACE_ID" ]]; then
+    if [[ -z "$WORKSPACE_ID" ]] || [[ "$WORKSPACE_ID" == "null" ]]; then
         echo "Failed to create workspace. Output: $workspace_output"
         exit 1
     fi
 
     debug "Created workspace with ID: $WORKSPACE_ID"
+    debug "Root pane ID: $ROOT_PANE_ID"
 
     # Select layout
     number_of_layouts=$(echo "$layout" | jq -r 'keys | length')
@@ -158,7 +159,7 @@ create-herdr-workspace() {
         create-tab "$win" $i
     done
 
-    # Focus on the first tab
+    # Focus on the workspace
     herdr workspace focus "$WORKSPACE_ID"
 }
 
