@@ -20,7 +20,15 @@ check-herdr-workspace() {
     debug "Checking herdr workspace $WORKSPACE_NAME"
 
     # Check if workspace with this label exists
-    WORKSPACE_ID=$(herdr workspace list | jq -r '.result.workspaces.[] | select(.label == "'"$WORKSPACE_NAME"'") | .workspace_id')
+    output_rep=$(herdr workspace list)
+
+    if [[ ! $? -eq 0 ]]; then
+        debug "Herdr server not running. starting a new one."
+        herdr &
+        sleep 2
+    else
+        WORKSPACE_ID=$(echo "$output_rep" | jq -r '.result.workspaces.[] | select(.label == "'"$WORKSPACE_NAME"'") | .workspace_id')
+    fi
 
     if [[ ! -z "$WORKSPACE_ID" ]]; then
         prompt="Herdr workspace with name $WORKSPACE_NAME already exists."
